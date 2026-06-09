@@ -11,12 +11,13 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use function Symfony\Component\Clock\now;
+use Faker\Factory as Faker;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-
+          $fake = Faker::create();
 
             User::firstOrCreate(
             ['email' => 'Admin@admin.com'],
@@ -39,9 +40,9 @@ class DatabaseSeeder extends Seeder
         // إنشاء companies و company owners
         foreach ($jobData['companies'] as $company) {
             $companyOwner = User::firstOrCreate(
-                ['email' => fake()->unique()->safeEmail()],
+                ['email' => $fake->unique()->safeEmail()],
                 [
-                    'name' => fake()->name(),
+                    'name' => $fake->name(),
                     'password' => Hash::make('12345678'),
                     'role' => 'company-owner',
                     'email_verified_at' => now(),
@@ -79,9 +80,9 @@ class DatabaseSeeder extends Seeder
             // إنشاء job applications
             foreach ($jobApplications['job_applications'] as $application) {
                 $applicant = User::firstOrCreate(
-                    ['email' => fake()->unique()->safeEmail()],
+                    ['email' => $fake->unique()->safeEmail()],
                     [
-                        'name' => fake()->name(),
+                        'name' => $fake->name(),
                         'password' => Hash::make('12345678'),
                         'role' => 'job-seeker',
                         'email_verified_at' => now(),
