@@ -84,35 +84,11 @@ class ApplicationController extends Controller
             abort(404, 'No resume file found for this application.');
         }
 
-        // Generate a temporary URL (valid 15 minutes) from cloud storage
-        $disk = Storage::disk('cloud');
-        $fallbackError = null;
-
         try {
-            if (method_exists($disk, 'temporaryUrl')) {
-                $url = $disk->temporaryUrl($fileUri, now()->addMinutes(15));
-                return redirect()->away($url);
-            }
-
-            if (method_exists($disk, 'url')) {
-                $url = $disk->url($fileUri);
-                return redirect()->away($url);
-            }
+            return Storage::disk('cloud')->response($fileUri);
         } catch (\Throwable $e) {
-            $fallbackError = $e;
+            abort(500, 'Could not retrieve resume file: ' . $e->getMessage());
         }
-
-        // Fallback: try direct URL construction
-        $baseUrl = rtrim(config('filesystems.disks.cloud.url', ''), '/');
-        if (!$baseUrl) {
-            $baseUrl = rtrim(config('filesystems.disks.s3.url', ''), '');
-        }
-
-        if ($baseUrl) {
-            return redirect()->away($baseUrl . '/' . ltrim($fileUri, '/'));
-        }
-
-        abort(500, isset($fallbackError) ? 'Could not generate resume URL: ' . $fallbackError->getMessage() : 'Could not generate resume URL.');
     }
 
     /**
