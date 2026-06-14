@@ -85,8 +85,9 @@ class ApplicationController extends Controller
         }
 
         try {
-            return Storage::disk('cloud')->response($fileUri);
+            return Storage::disk('cloud')->download($fileUri);
         } catch (\Throwable $e) {
+            \Log::error('Resume Download Error: ' . $e->getMessage());
             abort(500, 'Could not retrieve resume file: ' . $e->getMessage());
         }
     }
