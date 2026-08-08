@@ -1,61 +1,107 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Job Backoffice
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Admin and company management console for the job portal platform. Built with **Laravel 12**, this app is where **admins** manage the whole platform (users, companies, job categories) and **company owners** manage their own job vacancies and review applicants — including AI-generated resume scores produced by the companion [job-app](https://github.com/YoussefSayed-cs/job-app).
 
-## About Laravel
+This repository is one of three that make up the platform:
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+| Repo | Role |
+|---|---|
+| **job-backoffice** *(this repo)* | Admin & company-owner dashboard |
+| [job-app](https://github.com/YoussefSayed-cs/job-app) | Public-facing app for job seekers |
+| [job-shared](https://github.com/YoussefSayed-cs/job-shared) | Shared Eloquent models/notifications used by both apps |
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Features
 
-## Learning Laravel
+- **Role-based access control** — three roles (`admin`, `company-owner`, `job-seeker`) enforced via a custom `RoleMiddleware`, with route groups scoped per role.
+- **Company & job vacancy management** — full CRUD with soft deletes and restore, categories, and vacancy types (Full-Time, Contract, Remote, Hybrid).
+- **Applicant review** — company owners review applications submitted through job-app, including the AI-generated compatibility score and feedback, and can accept/reject candidates.
+- **Role-aware analytics dashboard** — built with a Repository + Service layer pattern; admins see platform-wide stats, company owners see stats scoped to their own company (applications, vacancy views, conversion rate).
+- **In-app notifications** — database-backed notifications (new applications, etc.) with read/unread state.
+- **User management** — admin-only CRUD for platform users.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Tech Stack
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- **Backend:** Laravel 12, PHP ^8.2
+- **Frontend:** Blade, Tailwind CSS, Alpine.js, Vite
+- **Database:** MariaDB/MySQL, UUID primary keys throughout
+- **Auth:** Laravel Breeze (session-based)
+- **Storage:** S3-compatible cloud storage (via `league/flysystem-aws-s3-v3`)
+- **Testing:** Pest
+- **Shared domain layer:** [`job/shared`](https://github.com/YoussefSayed-cs/job-shared) Composer package (Eloquent models & notifications)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Architecture Notes
 
-## Laravel Sponsors
+- **Repository + Service pattern for analytics.** `DashboardRepositoryInterface` is bound at runtime in `RepositoryServiceProvider` to either `AdminDashboardRepository` or `CompanyDashboardRepository` depending on the logged-in user's role, so `DashboardService` and the controller never need to know which one they're talking to.
+- **Shared domain models.** User, Company, JobVacancy, JobCategory, JobApplication, and Resume are defined once in `job/shared` and consumed by both this app and job-app, so both codebases stay in sync on the data model.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## Getting Started
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Prerequisites
 
-## Contributing
+- PHP >= 8.2
+- Composer
+- Node.js & npm
+- MariaDB/MySQL
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Installation
 
-## Code of Conduct
+```bash
+git clone https://github.com/YoussefSayed-cs/job-backoffice.git
+cd job-backoffice
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+composer install
+cp .env.example .env
+php artisan key:generate
 
-## Security Vulnerabilities
+# configure your database in .env, then:
+php artisan migrate
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+npm install
+npm run build
+```
+
+### Running locally
+
+```bash
+composer dev
+```
+This runs the PHP server, queue listener, log viewer (`pail`), and Vite dev server together.
+
+### ⚠️ Important — shared database
+
+**job-app does not ship its own migrations for the core domain tables** (users, companies, job vacancies, applications, resumes) — it relies entirely on the models from `job/shared`. Run the migrations **from this repo (job-backoffice)** to create the schema, then point job-app's `.env` at the **same database** (same `DB_HOST`/`DB_DATABASE`/credentials). Running each app against a separate, freshly-migrated database will leave job-app without the tables it needs.
+
+### Key environment variables
+
+| Variable | Purpose |
+|---|---|
+| `DB_*` | Database connection — must match job-app's `.env` (see note above) |
+| `AWS_*` | S3-compatible bucket for resume/file storage, shared with job-app |
+| `QUEUE_CONNECTION` | Queue driver (`database` by default) |
+
+## Roles & Permissions
+
+| Role | Access |
+|---|---|
+| `admin` | Full access: users, companies, job categories, all vacancies & applications |
+| `company-owner` | Their own company's vacancies and applications only |
+| `job-seeker` | No access to this app — see job-app |
+
+## Testing
+
+```bash
+composer test
+```
+
+## Related Repositories
+
+- [job-app](https://github.com/YoussefSayed-cs/job-app) — job seeker-facing application with AI-powered resume screening
+- [job-shared](https://github.com/YoussefSayed-cs/job-shared) — shared models and notifications package
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT
