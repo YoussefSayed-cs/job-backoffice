@@ -22,10 +22,7 @@ class DashboardService
         ];
     }
 
-    /**
-     * Business Logic: حساب معدل التحويل لكل وظيفة
-     * هذا المنطق ينتمي للـ Service وليس للـ Repository أو Controller
-     */
+    
     private function calculateConversionRates(): Collection
     {
         return $this->repository
@@ -40,16 +37,12 @@ class DashboardService
             });
     }
 
-    /**
-     * إذا لم تكن هناك مشاهدات حقيقية، نولّد عدداً تقريبياً ثابتاً
-     * بناءً على ID الوظيفة حتى لا تتغير القيمة عند كل تحديث
-     */
-    private function resolveViewsCount(object $job): int
+        private function resolveViewsCount(object $job): int
     {
         $views = $job->views_count ?? 0;
 
         if ($views === 0 && $job->totalCount > 0) {
-            $multiplier = (crc32($job->id) % 5) + 3; // قيمة ثابتة بين 3 و 7
+            $multiplier = (crc32($job->id) % 5) + 3; 
             $views = $job->totalCount * $multiplier;
         }
 
