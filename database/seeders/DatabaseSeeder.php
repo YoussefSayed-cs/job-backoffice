@@ -37,7 +37,7 @@ class DatabaseSeeder extends Seeder
             job_category::firstOrCreate(['name' => $category]); // job_category
         }
 
-        // إنشاء companies و company owners
+        
         foreach ($jobData['companies'] as $company) {
             $companyOwner = User::firstOrCreate(
                 ['email' => $fake->unique()->safeEmail()],
@@ -49,7 +49,7 @@ class DatabaseSeeder extends Seeder
                 ]
             );
 
-            company::firstOrCreate( // company
+            company::firstOrCreate( 
                 ['name' => $company['name']],
                 [
                     'address' => $company['address'],
