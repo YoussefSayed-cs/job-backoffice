@@ -19,6 +19,12 @@
 /storage/*.key
 /storage/pail
 /vendor
+/.claude
+/.cursor
+/.gemini
+/.github
+/.junie
+/.vscode
 Homestead.json
 Homestead.yaml
 Thumbs.db
