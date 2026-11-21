@@ -6,7 +6,6 @@ secured: true
 services:
   - mailpit
   - mysql
-  - redis
   - rustfs
   - soketi:
       preset: soketi
